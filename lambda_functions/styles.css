@@ -1,0 +1,142 @@
+/* CSS Styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: #e051c1;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+}
+
+h1, h2 {
+    margin: 10px;
+    padding: 10px 10px;
+}
+
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    background-color: #fff;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    cursor: pointer;
+}
+
+li:hover {
+    background-color: #f0f0f0;
+}
+
+#order-form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    padding-left: 10px; 
+}
+
+#order-form label {
+    margin-top: 10px;
+}
+
+#order-form select,
+#order-form input {
+    padding: 8px;
+    margin-bottom: 10px;
+}
+#order {
+    padding-left: 10px; 
+}
+
+button {
+    background-color: #3E8E41;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #5cb85c;
+}
+
+#restaurant_list{
+    padding-left: 10px;
+}
+
+#restaurants-container {
+    display: flex;
+    flex-wrap: wrap; /* Ensures rows wrap when there are more than 4 items */
+    gap: 16px; /* Space between restaurant cards */
+    justify-content: space-between; /* Distributes items evenly */
+    padding: 20px;
+}
+
+/* Each restaurant card */
+.restaurant {
+    background: #e1d0df;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(95, 203, 215, 0.1);
+    padding: 16px;
+    width: calc(25% - 16px); /* Each card takes 25% width minus spacing */
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.restaurant h2 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.restaurant p {
+    margin: 5px 0;
+}
+
+/* Add some responsiveness for smaller screens */
+@media (max-width: 768px) {
+    .restaurant {
+        width: calc(50% - 16px); /* Each card takes 50% width */
+    }
+}
+
+@media (max-width: 480px) {
+    .restaurant {
+        width: 100%; /* Each card takes full width */
+    }
+}
+
+.restaurant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem; /* Add spacing below the headings */
+}
+
+.restaurant-header h2 {
+    margin: 20px;
+    font-size: 1.5rem;
+    color: #360303;
+}
+
+.add-new {
+    color: #030405; /* Optional: make the "New Restaurant" heading stand out */
+    cursor: pointer;
+}
+
+.add-new:hover {
+    text-decoration: underline;
+}
+
+#add-restaurant-link{
+    font-size: 1.5rem;
+    margin-right: 10px;
+}

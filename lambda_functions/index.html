@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Delivery App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Welcome to the Food Delivery App</h1>
+    </header>
+
+    <main>
+        <section id="restaurant-list">
+            <div class="restaurant-header">
+                <h2>Restaurants</h2>
+                <nav>
+                    <a href="addRestaurant.html" class="add-new" id="add-restaurant-link">Add New Restaurant</a>
+                </nav>
+                <nav>
+                    <a href="order_listing.html" class="add-new" id="add-restaurant-link">View Orders</a>
+                </nav>
+            </div>
+            <div id="restaurants-container"></div>
+        </section>
+        <section id="order">
+            <form id="order-form">
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Food Delivery App</p>
+    </footer>
+
+    <script>
+        // JavaScript for the app
+
+        const restaurantList = document.getElementById('restaurants');
+        const menuList = document.getElementById('menu-items');
+        const restaurantSelect = document.getElementById('restaurant');
+        const menuSelect = document.getElementById('menu');
+        const orderForm = document.getElementById('order-form');
+
+        // Mock restaurant data (replace with real API data)
+       
+
+        let restaurants = [];
+
+        // Fetch restaurant data from API (replace with your API endpoint)
+        async function fetchRestaurants() {
+            try {
+
+                fetch('https://njbhhwu7y7.execute-api.us-west-1.amazonaws.com/prod/restaurants')
+                .then(res => res.json())
+                .then(data => {
+                    restaurants = data;
+                })
+                .catch(rejected => {
+                    console.log(rejected);
+                });
+                console.log('Fetching restaurants...');
+                const response = await fetch('https://njbhhwu7y7.execute-api.us-west-1.amazonaws.com/prod/restaurants', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Add any additional headers if required
+                    },
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Fetched data:', data);
+                
+                restaurants = data;
+                renderRestaurants(data);
+               
+            } catch (error) {
+                console.error("Error fetching restaurants:", error);
+                alert("Error fetching restaurants: " + error.message);
+            }
+        }
+        
+        const restaurantData = [
+  {id: 1, name: 'Pizza Palace', address: '123 Main St, San Jose', phone_number: '408-123-4567', cuisine_type: 'Italian'},
+  {id: 2, name: 'Sushi World', address: '456 Elm St, San Jose', phone_number: '408-987-6543', cuisine_type: 'Japanese'},
+  {id: 3, name: 'Burger Town', address: '789 Oak St, San Jose', phone_number: '408-567-8901', cuisine_type: 'American'},
+  // Add the rest of the restaurants as needed
+];
+        
+
+        // Function to list restaurants
+        function renderRestaurants(restaurants) {
+            const restaurantContainer = document.getElementById('restaurants-container');
+            restaurantContainer.innerHTML = ''; // Clear the container first
+        
+            // Loop through each restaurant and create an HTML element for it
+            restaurants.forEach(restaurant => {
+                const restaurantElement = document.createElement('div');
+                restaurantElement.classList.add('restaurant');
+
+                restaurantElement.onclick = () => {
+                    window.location.href = `order.html?restaurant_id=${restaurant.id}&restaurant_name=${restaurant.name}`;
+                };
+                
+        
+                restaurantElement.innerHTML = `
+                    <h2>${restaurant.name}</h2>
+                    <p><strong>Address:</strong> ${restaurant.address}</p>
+                    <p><strong>Phone:</strong> ${restaurant.phone_number}</p>
+                    <p><strong>Cuisine:</strong> ${restaurant.cuisine_type}</p>
+                `;
+        
+                restaurantContainer.appendChild(restaurantElement);
+            })}
+        
+          
+
+        // Function to list restaurants
+    
+
+        // Function to load menu items for a selected restaurant
+        function loadMenu(restaurant) {
+            menuList.innerHTML = '';
+            menuSelect.innerHTML = '<option value="">Select Menu Item</option>';
+
+            restaurant.menu.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - $${item.price}`;
+                menuList.appendChild(li);
+
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} - $${item.price}`;
+                menuSelect.appendChild(option);
+            });
+        }
+
+        // Function to handle order placement
+        orderForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const selectedRestaurantId = restaurantSelect.value;
+            const selectedMenuItemId = menuSelect.value;
+            const quantity = document.getElementById('quantity').value;
+
+            if (!selectedRestaurantId || !selectedMenuItemId || quantity <= 0) {
+                alert('Please select a valid restaurant, menu item, and quantity.');
+                return;
+            }
+
+            // Find selected restaurant and menu item
+            const restaurant = restaurants.find(r => r.id == selectedRestaurantId);
+            const menuItem = restaurant.menu.find(m => m.id == selectedMenuItemId);
+
+            alert(`Order placed for ${quantity} x ${menuItem.name} from ${restaurant.name}`);
+        });
+
+        // Load restaurant list on page load
+        renderRestaurants(restaurantData)
+        fetchRestaurants();
+    </script>
+</body>
+</html>

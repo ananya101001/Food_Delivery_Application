@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Listing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Order Listing</h1>
+    <p class="error" id="error"></p>
+    <table id="orderTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Restaurant Name</th>
+                <th>Status</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        // Fetch orders on page load
+        document.addEventListener("DOMContentLoaded", fetchOrders);
+
+        async function fetchOrders() {
+            const customerId = 1; // Replace with dynamic customer ID if necessary
+            const errorElement = document.getElementById("error");
+            const orderTable = document.getElementById("orderTable");
+            const tableBody = orderTable.querySelector("tbody");
+
+            // Reset UI
+            errorElement.textContent = "";
+            tableBody.innerHTML = "";
+            orderTable.style.display = "none";
+
+            try {
+                const response = await fetch(`https://njbhhwu7y7.execute-api.us-west-1.amazonaws.com/prod/orders?customer_id=${customerId}`, {
+                    method: 'GET', // Ensure the request is GET
+                });
+
+                // Check if response is ok
+                if (!response.ok) {
+                    throw new Error("Failed to fetch orders. Please try again.");
+                }
+
+                const orders = await response.json();
+
+                // If no orders, show error message
+                if (orders.length === 0) {
+                    errorElement.textContent = "No orders found for this customer.";
+                    return;
+                }
+
+                // Loop through orders and add them to the table
+                orders.forEach(order => {
+                    const row = document.createElement("tr");
+
+                    // Assuming the API returns the order items in a property called 'items'
+                    const orderItems = Array.isArray(order.items) ? order.items.map(item => item.item_name).join(", ") : "No items";
+
+                    row.innerHTML = `
+                        <td>${order.customer_id}</td>
+                        <td>${order.restaurant_id || "N/A"}</td>
+                        
+                        <td>${order.status || "N/A"}</td>
+                        <td>${order.created_at || "N/A"}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Show the table after data is populated
+                orderTable.style.display = "table";
+            } catch (error) {
+                // Handle any errors and display the message
+                errorElement.textContent = error.message;
+            }
+        }
+    </script>
+</body>
+</html>

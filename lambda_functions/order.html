@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Menu & Order</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .error {
+            color: red;
+        }
+        button {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Restaurant Menu & Order</h1>
+    <h2 id="restaurantName"></h2>
+
+    <button id="addMenuButton" style="margin-top: 20px;" onclick="navigateToAddMenu()">Add New Menu Item</button>
+   
+    <div id="output">
+        <p class="error" id="error"></p>
+        <table id="menuTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>ID</th>
+                    <th>Item Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="orderSection" style="display: none;">
+        <h2>Your Order</h2>
+        <p id="orderSummary"></p>
+        <button onclick="placeOrder()">Place Order</button>
+    </div>
+
+    <script>
+        let selectedItems = [];
+
+        function getRestaurantIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('restaurant_id');
+        }
+
+        function getRestaurantNameFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('restaurant_name');
+        }
+
+        async function fetchMenuOnLoad() {
+            const restaurantId = getRestaurantIdFromURL();
+            const restName = getRestaurantNameFromURL(); // Fetch restaurant name from URL
+            
+            // Set the restaurant name directly in the <h2> tag
+            document.getElementById('restaurantName').textContent = restName;
+
+            const errorElement = document.getElementById('error');
+            const menuTable = document.getElementById('menuTable');
+            const tableBody = menuTable.querySelector('tbody');
+            const orderSection = document.getElementById('orderSection');
+            const orderSummary = document.getElementById('orderSummary');
+
+            // Reset UI
+            errorElement.textContent = '';
+            tableBody.innerHTML = '';
+            menuTable.style.display = 'none';
+            orderSection.style.display = 'none';
+            selectedItems = [];
+
+            if (!restaurantId) {
+                errorElement.textContent = "Invalid restaurant ID. Please try again.";
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://njbhhwu7y7.execute-api.us-west-1.amazonaws.com/prod/menu?restaurant_id=${restaurantId}`);
+                
+                if (!response.ok) {
+                    throw new Error("Failed to fetch menu items. Please try again.");
+                }
+
+                const menuItems = await response.json();
+
+                if (menuItems.length === 0) {
+                    errorElement.textContent = "No menu items found for this restaurant.";
+                    return;
+                }
+
+                menuItems.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" value="${item.id}" data-name="${item.item_name}" data-price="${item.price}" onchange="selectItem(event)"></td>
+                        <td>${item.id}</td>
+                        <td>${item.item_name}</td>
+                        <td>${item.description}</td>
+                        <td>${item.price}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                menuTable.style.display = 'table';
+            } catch (error) {
+                errorElement.textContent = error.message;
+            }
+        }
+
+        function selectItem(event) {
+            const checkbox = event.target;
+            const itemId = checkbox.value;
+            const itemName = checkbox.dataset.name;
+            const itemPrice = parseFloat(checkbox.dataset.price);
+    
+            if (checkbox.checked) {
+                // Add the selected item to the array
+                selectedItems.push({ id: itemId, name: itemName, price: itemPrice });
+            } else {
+                // Remove the unselected item from the array
+                selectedItems = selectedItems.filter(item => item.id !== itemId);
+            }
+    
+            updateOrderSection();
+        }
+        
+        function updateOrderSection() {
+            const orderSection = document.getElementById('orderSection');
+            const orderSummary = document.getElementById('orderSummary');
+    
+            if (selectedItems.length === 0) {
+                // Hide the order section if no items are selected
+                orderSection.style.display = 'none';
+                orderSummary.textContent = '';
+            } else {
+                // Show the order section and update the summary
+                orderSection.style.display = 'block';
+                const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+                const summary = selectedItems
+                    .map(item => `${item.name} ($${item.price.toFixed(2)})`)
+                    .join(', ');
+                orderSummary.textContent = `You selected: ${summary}. Total: $${total.toFixed(2)}`;
+            }
+        }
+
+        function navigateToAddMenu() {
+            const restaurantId = getRestaurantIdFromURL();
+            if (restaurantId) {
+                // Redirect to the add_menu.html page with the restaurant_id as a query parameter
+                window.location.href = `add_menu.html?restaurant_id=${restaurantId}`;
+            } else {
+                alert("Restaurant ID is missing. Cannot navigate to add menu.");
+            }
+        }
+
+        function placeOrder() {
+            const orderEndpoint = "https://njbhhwu7y7.execute-api.us-west-1.amazonaws.com/prod/orders";
+        
+            const customerId = 1; // Hardcoded customer ID
+            const restaurantId = getRestaurantIdFromURL(); // Get restaurant ID from URL
+        
+            if (!restaurantId) {
+                alert("Restaurant ID is missing. Cannot place order.");
+                return;
+            }
+        
+            const payload = {
+                customer_id: customerId,
+                restaurant_id: parseInt(restaurantId)
+            };
+        
+            fetch(orderEndpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorDetails => {
+                        throw new Error(
+                            `Failed to place the order: ${errorDetails.message || response.statusText}`
+                        );
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                alert(`Order placed successfully! Order ID: ${result.order_id}`);
+            })
+            .catch(error => {
+                console.error("Error placing order:", error);
+                alert(`Error: ${error.message}`);
+            });
+        }
+        
+    
+        window.onload = fetchMenuOnLoad;
+    </script>
+</body>
+</html>
